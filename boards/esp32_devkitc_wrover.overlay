@@ -1,0 +1,102 @@
+/{
+	zephyr,user {
+		io-channels =
+			<&adc_ext 0>;
+	};
+	chosen {
+		zephyr,display = &st7789v_st7789v_ttgo_128x64;
+	};
+	leds {
+		compatible = "gpio-leds";
+
+		backlight: led_0 {
+			gpios =  <&gpio0 4 GPIO_ACTIVE_HIGH>;
+			label = "Backlight";
+		};
+	};
+};
+
+&wifi {
+	status = "okay";
+};
+
+#include <zephyr/dt-bindings/pinctrl/esp-pinctrl-common.h>
+#include <dt-bindings/pinctrl/esp32-pinctrl.h>
+#include <zephyr/dt-bindings/pinctrl/esp32-gpio-sigmap.h>
+
+&pinctrl {
+
+	spim3_display: spim3_display {
+		group1 {
+			pinmux = <SPIM3_MOSI_GPIO19>,
+					<SPIM3_SCLK_GPIO18>,
+					<SPIM3_CSEL_GPIO5>;
+		};
+	};
+};
+
+&i2c0 {
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_STANDARD>;
+	sda-gpios = <&gpio0 22 GPIO_OPEN_DRAIN>;
+	scl-gpios = <&gpio0 21 GPIO_OPEN_DRAIN>;
+
+	adc_ext: mcp3421@68 {
+		compatible = "microchip,mcp3421";
+		reg = <0x68>;
+		#io-channel-cells = <1>;
+	};
+};
+
+&adc_ext {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	channel@0 {
+		reg = <0>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <18>;
+		zephyr,differential;
+	};
+};
+
+
+&spi3 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+	pinctrl-0 = <&spim3_display>;
+	pinctrl-names = "default";
+
+	// cs-gpios = <&gpio0 5 GPIO_ACTIVE_LOW>;	/* D10 */
+
+	st7789v_st7789v_ttgo_128x64: st7789v@0 {
+		compatible = "sitronix,st7789v";
+		spi-max-frequency = <20000000>;
+		reg = <0>;
+		cmd-data-gpios = <&gpio0 16 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpio0 23 GPIO_ACTIVE_LOW>;
+		width = <135>;
+		height = <240>;
+		x-offset = <53>;
+		y-offset = <40>;
+		vcom = <0x19>;
+		gctrl = <0x35>;
+		vrhs = <0x12>;
+		vdvs = <0x20>;
+		mdac = <0x00>;
+		gamma = <0x01>;
+		colmod = <0x05>;
+		lcm = <0x2c>;
+		porch-param = [0c 0c 00 33 33];
+		cmd2en-param = [5a 69 02 01];
+		pwctrl1-param = [a4 a1];
+		pvgam-param = [D0 04 0D 11 13 2B 3F 54 4C 18 0D 0B 1F 23];
+		nvgam-param = [D0 04 0C 11 13 2C 3F 44 51 2F 1F 1F 20 23];
+		ram-param = [00 F8];
+		rgb-param = [CD 08 14];
+	};
+};
