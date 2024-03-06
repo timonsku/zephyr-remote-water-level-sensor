@@ -1,5 +1,5 @@
 /*
- * copyright (c) 2023 golioth, inc.
+ * copyright (c) 2023 Diodes Delight
  *
  * spdx-license-identifier: apache-2.0
  */
